@@ -20,20 +20,21 @@
     .no-spinners::-webkit-outer-spin-button, .no-spinners::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     .no-spinners { -moz-appearance: textfield; }
 
-    /* Thermal Printer Voucher Style (80mm width roughly equals 300px) */
-    .receipt-wrapper { display: none; position: fixed; top: 0; left: 0; width: 300px; z-index: 99999; background: white; padding: 10px; box-sizing: border-box; }
+    /* Thermal Printer Voucher Style (Spacious & Clean) */
+    .receipt-wrapper { display: none; position: fixed; top: 0; left: 0; width: 320px; z-index: 99999; background: white; padding: 20px; box-sizing: border-box; }
     .receipt-card { width: 100%; font-family: sans-serif; color: #000; }
-    .receipt-header { text-align: center; margin-bottom: 10px; border-bottom: 1px dashed #000; padding-bottom: 10px; }
-    .receipt-logo { width: 70px; height: auto; margin: 0 auto 5px auto; border-radius: 4px; display: block; }
-    .receipt-header h2 { margin: 0 0 5px 0; font-size: 16px; font-weight: bold; color: #1a5e20;}
-    .receipt-header .address-text { margin: 4px 0; font-size: 11px; line-height: 1.4; }
+    .receipt-header { text-align: center; margin-bottom: 12px; border-bottom: 1px dashed #000; padding-bottom: 12px; }
+    .receipt-logo { width: 70px; height: auto; margin: 0 auto 8px auto; border-radius: 4px; display: block; }
+    .receipt-header h2 { margin: 0 0 6px 0; font-size: 16px; font-weight: bold; color: #1a5e20;}
+    .receipt-header .address-text { margin: 4px 0; font-size: 11px; line-height: 1.5; }
     .receipt-header .info-text { margin: 2px 0; font-size: 11px; }
     
-    .receipt-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 11px; }
-    .receipt-table th, .receipt-table td { border-bottom: 1px dashed #ccc; padding: 6px 0; text-align: left; vertical-align: top; }
-    .receipt-table th.right, .receipt-table td.right { text-align: right; }
+    .receipt-table { width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 11px; }
+    /* Padding တိုးပေးထားပြီး စာရှည်လျှင် အောက်ဆင်းစေရန် word-break ထည့်ထားပါသည် */
+    .receipt-table th, .receipt-table td { border-bottom: 1px dashed #ccc; padding: 8px 4px; text-align: left; vertical-align: top; word-break: break-word; }
+    .receipt-table th.right, .receipt-table td.right { text-align: right; white-space: nowrap; }
     
-    .receipt-total { display: flex; justify-content: space-between; font-size: 14px; font-weight: bold; border-top: 1px dashed #000; padding-top: 8px; margin-bottom: 15px; }
+    .receipt-total { display: flex; justify-content: space-between; font-size: 14px; font-weight: bold; border-top: 1px dashed #000; padding-top: 10px; margin-bottom: 15px; }
   </style>
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans relative">
@@ -171,7 +172,7 @@
     </div>
   </div>
 
-  <!-- Thermal Receipt Area (Fixed Width 300px for 80mm Printer) -->
+  <!-- Thermal Receipt Area (Fixed Width 320px with spacious padding for 80mm Printer) -->
   <div id="receiptWrapper" class="receipt-wrapper">
     <div id="printContent" class="receipt-card">
       <div class="receipt-header">
@@ -409,29 +410,29 @@
         dlBtn.disabled = true;
         
         const wrapper = document.getElementById('receiptWrapper');
-        wrapper.style.display = 'block'; // ဖုန်းမျက်နှာပြင်တွင် သေချာပေါ်လာစေရန် (Top Left)
+        wrapper.style.display = 'block'; 
         
-        // 80mm အတိုင်းအတာဖြင့် အဖြူရောင်ဗလာမကျန်စေရန် အမြင့် (Height) ကို တွက်ချက်ခြင်း
+        // ဘောင်ချာအရှည် (Height) တွက်ချက်ခြင်း 
         const contentHeight = wrapper.offsetHeight; 
-        const heightInMM = Math.max(100, (contentHeight * 25.4) / 96); 
+        // 80mm အကျယ်နှင့် အချိုးညီစေရန် တွက်ချက်ပြီး အောက်တွင် အလွတ်အနည်းငယ် (10mm ခန့်) ချန်ထားပေးသည်
+        const heightInMM = Math.max(100, (contentHeight * 25.4) / 96) + 10; 
         
         const opt = {
-          margin: 2,
+          margin: 0, // HTML အတွင်းရှိ padding ကိုသာ အသုံးပြုမည်ဖြစ်၍ 0 ထားပါသည်
           filename: inv + '.pdf',
           image: { type: 'jpeg', quality: 1 },
           html2canvas: { 
-            scale: 1, 
+            scale: 2, 
             useCORS: true,
-            scrollY: 0, // အောက်ရောက်နေလျှင် အပေါ်ဆုံးမှ ပြန်စဖြတ်ရန် (ဖြတ်ပိုင်းပြတ်ခြင်းကို ကာကွယ်ရန်)
-            windowWidth: 300 // Thermal size 300px width
+            scrollY: 0,
+            windowWidth: 320 // 320px ဖြင့် ဖြတ်မည်
           },
-          jsPDF: { unit: 'mm', format: [80, heightInMM + 10], orientation: 'portrait' }
+          jsPDF: { unit: 'mm', format: [80, heightInMM], orientation: 'portrait' }
         };
         
-        // ပုံများပေါ်လာစေရန် အနည်းငယ်စောင့်ပြီးမှ Screenshot ရိုက်ယူသည်
         setTimeout(() => {
             html2pdf().set(opt).from(wrapper).save().then(() => {
-              wrapper.style.display = 'none'; // ဒေါင်းလုဒ်အပြီးတွင် ချက်ချင်းပြန်ဖျောက်သည်
+              wrapper.style.display = 'none';
               dlBtn.innerHTML = originalText;
               dlBtn.disabled = false;
             }).catch(err => {
