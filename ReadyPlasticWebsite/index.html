@@ -19,21 +19,9 @@
     /* Remove Number Input Arrows for Keyboard typing */
     .no-spinners::-webkit-outer-spin-button, .no-spinners::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     .no-spinners { -moz-appearance: textfield; }
-
-    /* Voucher PDF Style */
-    .receipt-card { background: white; width: 340px; padding: 25px 20px 20px 20px; font-family: monospace; color: #000; }
-    .receipt-header { text-align: center; margin-bottom: 15px; border-bottom: 1px dashed #000; padding-bottom: 10px; }
-    .receipt-logo { width: 70px; height: auto; margin: 0 auto 5px auto; border-radius: 4px; display: block; }
-    .receipt-header h2 { margin: 0 0 5px 0; font-size: 18px; font-family: sans-serif; color: #1a5e20;}
-    .receipt-header .address-text { margin: 4px 0; font-size: 11px; line-height: 1.4; font-family: sans-serif; }
-    .receipt-header .info-text { margin: 2px 0; font-size: 12px; }
-    .receipt-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 12px; }
-    .receipt-table th, .receipt-table td { border-bottom: 1px dashed #ccc; padding: 5px 0; text-align: left; }
-    .receipt-table th.right, .receipt-table td.right { text-align: right; }
-    .receipt-total { display: flex; justify-content: space-between; font-size: 16px; font-weight: bold; border-top: 1px dashed #000; padding-top: 10px; margin-bottom: 20px; }
   </style>
 </head>
-<body class="bg-gray-50 text-gray-800 font-sans relative">
+<body class="bg-gray-50 text-gray-800 font-sans">
 
   <!-- Navbar -->
   <nav class="bg-white shadow-md sticky top-0 z-40">
@@ -170,33 +158,9 @@
     </div>
   </div>
 
-  <!-- Blank PDF Fix: Temporary On-Screen Receipt Area (Hidden via z-index behind Modal) -->
-  <!-- အဟောင်းနေရာတွင် အောက်ပါကုဒ်ဖြင့် အစားထိုးပါ -->
-<div id="receiptWrapper" style="display: none; position: fixed; top: 0; left: 0; width: 340px; z-index: 50; background: white;">
-    <div id="printContent" class="receipt-card">
-      <div class="receipt-header">
-        <img src="https://drive.google.com/uc?export=view&id=1ZAR16YrOqmmsAzmX_f4v6jxaWSJVburY" alt="Ready Packaging Logo" class="receipt-logo" crossorigin="anonymous" onerror="this.style.display='none'">
-        <h2>Ready Plastic&Packaging</h2>
-        <p class="address-text">ဆိုင်အမှတ်-ည(၄/၅)၊ ညဈေး(စျေးရုံအတွင်း)၊<br>စျေးကြီးလမ်း၊ ကြည့်မြင်တိုင်၊ ရန်ကုန်မြို့။</p>
-        <p class="address-text"><strong>Viber:</strong> 09425024355 | <strong>Kpay:</strong> 09791685202</p>
-        <p class="info-text" id="r-date" style="margin-top: 8px;">Date: --</p>
-        <p class="info-text" id="r-inv">INV: --</p>
-      </div>
-      <table class="receipt-table">
-        <thead><tr><th>Item</th><th class="right">Amount</th></tr></thead>
-        <tbody id="r-items"></tbody>
-      </table>
-      <div class="receipt-total">
-        <span>Total:</span>
-        <span id="r-total">0 Ks</span>
-      </div>
-      <p style="text-align: center; font-size: 12px;">ဝယ်ယူအားပေးမှုကို ကျေးဇူးတင်ပါသည်!</p>
-    </div>
-  </div>
-
   <script>
     // =======================================================
-    // User Provided App Script URL
+    // User API URL
     const API_URL = "https://script.google.com/macros/s/AKfycbx4MAAHi-qhEWXTHRxHH5yw3LuszN7OwfeF1JELDf3WPDzWZc7xPELaCZjPZVNSeBuTmg/exec"; 
     // =======================================================
 
@@ -399,42 +363,55 @@
       btn.disabled = false;
     }
 
-    // Receipt Preparation & Download (Blank PDF Fix applied here)
+    // 100% BLANK PDF FIX (String generation method)
     function prepareReceiptData(inv, date, items, total) {
-      document.getElementById('r-inv').innerText = "INV: " + inv;
-      document.getElementById('r-date').innerText = "Date: " + date;
-      document.getElementById('r-items').innerHTML = items.map(i => `<tr><td style="border-bottom: 1px dashed #ccc; padding: 5px 0;">${i.name}<br><small>${i.price.toLocaleString()} x ${i.qty}</small></td><td style="border-bottom: 1px dashed #ccc; padding: 5px 0; text-align: right;">${(i.price * i.qty).toLocaleString()}</td></tr>`).join('');
-      document.getElementById('r-total').innerText = total.toLocaleString() + " Ks";
-      
       const dlBtn = document.getElementById('btn-download-voucher');
       dlBtn.onclick = function() {
         const originalText = dlBtn.innerHTML;
         dlBtn.innerHTML = "⏳ ဆွဲယူနေပါသည်...";
         dlBtn.disabled = true;
         
-        // Modal ၏ အနောက်ဘက် မျက်နှာပြင်ပေါ်တွင် Voucher ကို ယာယီဖော်ပြပြီး PDF ကူးယူမည် (Blank Fix)
-        const wrapper = document.getElementById('receiptWrapper');
-        wrapper.style.display = 'block'; 
+        // ဘောင်ချာ ဒီဇိုင်းကို HTML လိုင်းများအဖြစ် တိုက်ရိုက် ရေးသားဖန်တီးခြင်း
+        let itemsHtml = items.map(i => `<tr><td style="border-bottom: 1px dashed #ccc; padding: 5px 0;">${i.name}<br><small>${i.price.toLocaleString()} x ${i.qty}</small></td><td style="border-bottom: 1px dashed #ccc; padding: 5px 0; text-align: right;">${(i.price * i.qty).toLocaleString()}</td></tr>`).join('');
         
-        const element = document.getElementById('printContent');
-        // JS အောက်နားရှိ prepareReceiptData function အထဲတွင် ပြင်ရန်
-const opt = {
-  margin: 0.1,
-  filename: inv + '.pdf',
-  image: { type: 'jpeg', quality: 1 },
-  html2canvas: { scale: 2, useCORS: true, scrollY: 0 }, // scrollY: 0 ကို ထပ်ထည့်ထားပါသည်
-  jsPDF: { unit: 'in', format: [3.15, 6], orientation: 'portrait' }
-};
+        let receiptHTML = `
+          <div style="background: white; width: 340px; padding: 25px 20px 20px 20px; font-family: monospace; color: #000; box-sizing: border-box;">
+            <div style="text-align: center; margin-bottom: 15px; border-bottom: 1px dashed #000; padding-bottom: 10px;">
+              <img src="https://drive.google.com/uc?export=view&id=1ZAR16YrOqmmsAzmX_f4v6jxaWSJVburY" crossorigin="anonymous" style="width: 70px; height: auto; margin: 0 auto 5px auto; border-radius: 4px; display: block;" onerror="this.style.display='none'">
+              <h2 style="margin: 0 0 5px 0; font-size: 18px; font-family: sans-serif; color: #1a5e20;">Ready Packaging</h2>
+              <p style="margin: 4px 0; font-size: 11px; line-height: 1.4; font-family: sans-serif;">ဆိုင်အမှတ်-ည(၄/၅)၊ ညဈေး(စျေးရုံအတွင်း)၊<br>စျေးကြီးလမ်း၊ ကြည့်မြင်တိုင်၊ ရန်ကုန်မြို့။</p>
+              <p style="margin: 4px 0; font-size: 11px; font-family: sans-serif;"><strong>Viber:</strong> 09425024355 | <strong>Kpay:</strong> 09791685202</p>
+              <p style="margin: 10px 0 2px 0; font-size: 12px;">Date: ${date}</p>
+              <p style="margin: 2px 0; font-size: 12px;">INV: ${inv}</p>
+            </div>
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 12px;">
+              <thead><tr><th style="border-bottom: 1px dashed #ccc; padding: 5px 0; text-align: left;">Item</th><th style="border-bottom: 1px dashed #ccc; padding: 5px 0; text-align: right;">Amount</th></tr></thead>
+              <tbody>${itemsHtml}</tbody>
+            </table>
+            <div style="display: flex; justify-content: space-between; font-size: 16px; font-weight: bold; border-top: 1px dashed #000; padding-top: 10px; margin-bottom: 20px;">
+              <span>Total:</span>
+              <span>${total.toLocaleString()} Ks</span>
+            </div>
+            <p style="text-align: center; font-size: 12px;">ဝယ်ယူအားပေးမှုကို ကျေးဇူးတင်ပါသည်!</p>
+          </div>
+        `;
+
+        const opt = {
+          margin: 0.1,
+          filename: inv + '.pdf',
+          image: { type: 'jpeg', quality: 1 },
+          html2canvas: { scale: 2, useCORS: true, logging: false },
+          jsPDF: { unit: 'in', format: [3.15, 6], orientation: 'portrait' }
+        };
         
-        html2pdf().set(opt).from(element).save().then(() => {
-          wrapper.style.display = 'none'; // ဒေါင်းလုဒ်အပြီးတွင် ချက်ချင်းပြန်ဖျောက်မည်
+        // ဖွက်ထားသော မျက်နှာပြင်မှ ယူမည့်အစား HTML Code ကို တိုက်ရိုက် PDF ပြောင်းမည်
+        html2pdf().set(opt).from(receiptHTML).save().then(() => {
           dlBtn.innerHTML = originalText;
           dlBtn.disabled = false;
         }).catch(err => {
-          wrapper.style.display = 'none';
           dlBtn.innerHTML = originalText;
           dlBtn.disabled = false;
-          alert("ပုံမှန်မဟုတ်သော ချိတ်ဆက်မှုကြောင့် PDF ဒေါင်းလုဒ်ဆွဲရာတွင် အခက်အခဲရှိပါသည်။");
+          alert("PDF ဆွဲယူရာတွင် အခက်အခဲရှိပါသည်။");
         });
       };
     }
