@@ -5,22 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ready Packaging - Shop</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- PDF Download Library -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  
+  <!-- PDF အတွက် Third-party အသစ်များ (Blank ဖြစ်ခြင်းကို ၁၀၀% ကာကွယ်ပေးမည်) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
+  
   <script>
     tailwind.config = { theme: { extend: { colors: { primary: '#0A5C36', secondary: '#FCD34D' } } } }
   </script>
   <style>
-    /* Custom Styles */
     .out-of-stock-overlay { background: rgba(255,255,255,0.7); position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; z-index: 10; }
     .modal-enter { animation: modalFadeIn 0.3s ease-out forwards; }
     @keyframes modalFadeIn { from { opacity: 0; transform: scale(0.95) translateY(-20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
     
-    /* Remove Number Input Arrows for Keyboard typing */
     .no-spinners::-webkit-outer-spin-button, .no-spinners::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     .no-spinners { -moz-appearance: textfield; }
 
-    /* User's Exact Receipt Print CSS */
+    /* Print CSS */
     @media print {
       body * { visibility: hidden; }
       #printContent, #printContent * { visibility: visible; }
@@ -77,6 +78,7 @@
       </div>
       <div id="cart-items" class="flex-1 overflow-y-auto p-5 space-y-3 bg-gray-50"></div>
       
+      <!-- Checkout Form -->
       <div class="p-5 bg-white border-t shadow-[0_-5px_10px_-5px_rgba(0,0,0,0.1)]">
         <div class="flex justify-between font-black text-lg mb-4 border-b pb-2"><span>စုစုပေါင်း:</span><span id="cart-total" class="text-primary text-xl">0 Ks</span></div>
         <form onsubmit="submitOrder(event)" class="space-y-4">
@@ -123,10 +125,7 @@
 
       <div class="space-y-3">
         <button type="button" onclick="openKPay()" class="w-full bg-[#1e4887] hover:bg-[#153463] text-white py-3 rounded-lg font-bold flex justify-center items-center gap-2 transition shadow-md">KPay App သို့သွားရန်</button>
-        
-        <!-- ပြင်ဆင်ချက် - ဘောင်ချာ Modal သို့ သွားမည့်ခလုတ် -->
         <button onclick="openReceiptModal()" class="w-full bg-primary hover:bg-green-800 text-white py-3 rounded-lg font-bold transition flex justify-center items-center gap-2 shadow-md">📄 ဘောင်ချာ ကြည့်ရန် / Download</button>
-        
         <button onclick="closeModals()" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-lg font-bold transition">ပိတ်မည်</button>
       </div>
     </div>
@@ -150,19 +149,18 @@
       </div>
 
       <div class="space-y-3">
-        <!-- ပြင်ဆင်ချက် - ဘောင်ချာ Modal သို့ သွားမည့်ခလုတ် -->
         <button onclick="openReceiptModal()" class="w-full bg-primary hover:bg-green-800 text-white py-3 rounded-lg font-bold transition shadow-md">📄 ဘောင်ချာ ကြည့်ရန် / Download</button>
         <button onclick="closeModals()" class="w-full bg-gray-800 hover:bg-gray-900 text-white py-3 rounded-lg font-bold transition shadow-md">အိုကေ၊ နားလည်ပါပြီ</button>
       </div>
     </div>
   </div>
 
-  <!-- User's Exact Receipt Modal (Blank Fix) -->
+  <!-- User's Exact Receipt Modal -->
   <div class="fixed inset-0 bg-black/70 hidden z-[110] flex justify-center items-center" id="receiptModal">
     <div class="bg-white w-[340px] p-[25px_20px_20px_20px] rounded-lg shadow-xl font-mono text-black relative max-h-[90vh] overflow-y-auto">
       <button class="absolute top-2 right-3 text-2xl font-bold text-gray-500 hover:text-red-500 close-btn-x bg-transparent border-none cursor-pointer" onclick="closeReceipt()">&times;</button>
       
-      <div id="printContent">
+      <div id="printContent" class="bg-white">
         <div class="text-center mb-[15px] border-b border-dashed border-black pb-[10px]">
           <img src="https://drive.google.com/uc?export=view&id=1ZAR16YrOqmmsAzmX_f4v6jxaWSJVburY" alt="Ready Packaging Logo" class="w-[70px] h-auto mx-auto mb-[5px] rounded" crossorigin="anonymous" onerror="this.style.display='none'">
           <h2 class="m-0 mb-1 text-[18px] font-sans font-bold text-[#1a5e20]">Ready Plastic&Packaging</h2>
@@ -181,7 +179,6 @@
           <tbody id="receiptItems"></tbody>
         </table>
         
-        <!-- ပြင်ဆင်ထားသော Receipt Total အပိုင်း (Discount ပါဝင်မည်) -->
         <div class="receipt-total">
           <div id="receiptDiscountRow" style="display: none; justify-content: space-between; font-size: 13px; font-weight: normal; color: #555; border-bottom: 1px dashed #ccc; padding-bottom: 5px;">
             <span>Discount:</span>
@@ -197,7 +194,7 @@
       </div>
 
       <div class="flex gap-[10px] justify-center" id="receiptActions">
-        <button class="flex-1 py-[12px] px-[10px] border-none rounded bg-[#17a2b8] text-white font-bold text-[13px] cursor-pointer" id="pdfBtn" onclick="downloadPDF()">⬇️ Download PDF</button>
+        <button class="flex-1 py-[12px] px-[10px] border-none rounded bg-[#17a2b8] text-white font-bold text-[13px] cursor-pointer" id="pdfBtn" onclick="downloadPDF()">⬇️️ Download PDF</button>
         <button class="flex-1 py-[12px] px-[10px] border-none rounded bg-[#28a745] text-white font-bold text-[13px] cursor-pointer" onclick="printReceipt()">🖨️ Print</button>
       </div>
     </div>
@@ -211,13 +208,11 @@
 
     let allProducts = [], cart = [], activeCategory = 'All';
 
-    // UI Tab Switch
     function switchTab(tab) {
       document.getElementById('shop-section').style.display = tab === 'shop' ? 'block' : 'none';
       document.getElementById('track-section').style.display = tab === 'track' ? 'block' : 'none';
     }
 
-    // KPay App Route
     function openKPay() {
       var userAgent = navigator.userAgent || navigator.vendor || window.opera;
       if (/android/i.test(userAgent)) {
@@ -229,7 +224,6 @@
       }
     }
 
-    // Load Products
     async function loadData() {
       try {
         const res = await fetch(API_URL);
@@ -289,7 +283,6 @@
       }).join('');
     }
 
-    // Basic Cart Add Logic
     function addToCart(code) {
       const p = allProducts.find(x => x.code === code);
       if(p.stock <= 0) return;
@@ -298,7 +291,6 @@
       updateCart();
     }
 
-    // Keyboard Manual Qty Input Handler
     function updateItemQty(index, val) {
       let qty = parseInt(val, 10);
       if (isNaN(qty) || qty <= 0) {
@@ -346,71 +338,92 @@
       document.getElementById('cod-modal').classList.add('hidden');
     }
 
-    // Receipt Modal Actions
     function openReceiptModal() {
-      closeModals(); // Prepaid သို့မဟုတ် COD modal များကိုပိတ်မည်
-      document.getElementById('receiptModal').classList.remove('hidden'); // Receipt ကို ပေါ်လာစေမည်
+      closeModals(); 
+      document.getElementById('receiptModal').classList.remove('hidden');
     }
 
     function closeReceipt() {
       document.getElementById('receiptModal').classList.add('hidden');
     }
 
-    function downloadPDF() {
+    // ==========================================
+    // PDF ပြောင်းသည့်စနစ်အသစ် (Blank 100% ကာကွယ်မည်)
+    // ==========================================
+    async function downloadPDF() {
       const btn = document.getElementById('pdfBtn');
       const originalText = btn.innerText;
       btn.innerText = "⏳ Loading...";
       btn.disabled = true;
       
-      // PDF ဆွဲနေစဉ် Button များကို ခဏဖျောက်ထားမည်
-      document.getElementById('receiptActions').style.display = 'none';
-      
+      const actions = document.getElementById('receiptActions');
+      const closeBtn = document.querySelector('.close-btn-x');
       const element = document.getElementById('printContent');
       const invoiceNo = document.getElementById('receiptInvoice').innerText.replace('INV: ', '');
+
+      // ဓာတ်ပုံရိုက်ချိန်တွင် ခလုတ်များ ဖျောက်ထားမည်
+      actions.style.display = 'none';
+      closeBtn.style.display = 'none';
       
-      const opt = {
-        margin: 0.1,
-        filename: invoiceNo + '.pdf',
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
-        jsPDF: { unit: 'in', format: [3.15, 6], orientation: 'portrait' }
-      };
-      
-      html2pdf().set(opt).from(element).save()
-        .then(() => {
-          btn.innerText = originalText;
-          btn.disabled = false;
-          document.getElementById('receiptActions').style.display = 'flex'; // Button များ ပြန်ဖော်မည်
-        })
-        .catch(err => {
-          console.error("PDF Error: ", err);
-          btn.innerText = originalText;
-          btn.disabled = false;
-          document.getElementById('receiptActions').style.display = 'flex';
-          alert("ပုံမှန်မဟုတ်သော ချိတ်ဆက်မှုကြောင့် PDF ဆွဲယူ၍ မရပါ။");
+      try {
+        // html-to-image ဖြင့် မျက်နှာပြင်ကို ပုံပြောင်းမည် (Scroll ကြောင့်ပြတ်တောက်ခြင်းကို ကာကွယ်သည်)
+        const dataUrl = await htmlToImage.toJpeg(element, { 
+            quality: 1.0, 
+            backgroundColor: '#ffffff',
+            pixelRatio: 2 // ကြည်လင်ပြတ်သားစေရန်
         });
+        
+        const { jsPDF } = window.jspdf;
+        const img = new Image();
+        img.src = dataUrl;
+        
+        img.onload = function() {
+          const imgWidth = 80; // Thermal Size 80mm
+          const imgHeight = (img.height * imgWidth) / img.width;
+          
+          const pdf = new jsPDF({
+            orientation: 'portrait',
+            unit: 'mm',
+            format: [80, imgHeight]
+          });
+          
+          pdf.addImage(dataUrl, 'JPEG', 0, 0, imgWidth, imgHeight);
+          pdf.save(invoiceNo + '.pdf');
+          
+          // အားလုံးပြီးပါက မူလအတိုင်း ပြန်ထားမည်
+          btn.innerText = originalText;
+          btn.disabled = false;
+          actions.style.display = 'flex';
+          closeBtn.style.display = 'block';
+        };
+      } catch (err) {
+        console.error("PDF Error: ", err);
+        alert("PDF ဆွဲယူရာတွင် အခက်အခဲရှိပါသည်။ Browser ပေါ်မူတည်၍ အနည်းငယ်ကြာနိုင်ပါသည်။");
+        btn.innerText = originalText;
+        btn.disabled = false;
+        actions.style.display = 'flex';
+        closeBtn.style.display = 'block';
+      }
     }
 
     function printReceipt() {
       window.print();
     }
 
-    // Copy Tool
     function copyText(text, btnElement) {
       navigator.clipboard.writeText(text).then(() => {
         const originalHTML = btnElement.innerHTML;
         btnElement.innerHTML = '✔ Copied!';
         btnElement.classList.add('bg-green-600', 'text-white');
-        btnElement.classList.remove('bg-gray-100', 'text-gray-700', 'bg-blue-600');
+        btnElement.classList.remove('bg-blue-600', 'hover:bg-blue-700');
         setTimeout(() => {
           btnElement.innerHTML = originalHTML;
           btnElement.classList.remove('bg-green-600', 'text-white');
-          btnElement.classList.add(text.includes('ORD') ? 'bg-blue-600' : 'bg-gray-100');
+          btnElement.classList.add('bg-blue-600', 'hover:bg-blue-700');
         }, 1500);
       });
     }
 
-    // Order Submission
     async function submitOrder(e) {
       e.preventDefault();
       if(cart.length === 0) return alert("ခြင်းတောင်းထဲတွင် ပစ္စည်းမရှိပါ။");
@@ -436,7 +449,7 @@
         toggleCart(); 
         e.target.reset(); 
         
-        prepareReceiptData(data.orderId, data.dateStr, cart, totalAmt); // ဘောင်ချာ Data အားလုံး အရင်ဖြည့်သွင်းမည်
+        prepareReceiptData(data.orderId, data.dateStr, cart, totalAmt); 
 
         if (data.paymentType === 'Prepaid') {
           document.getElementById('prepaid-amount').innerText = totalAmt.toLocaleString() + " Ks";
@@ -454,7 +467,6 @@
       btn.disabled = false;
     }
 
-    // Receipt Preparation (DOM Data Injection)
     function prepareReceiptData(inv, date, items, total) {
       document.getElementById('receiptInvoice').innerText = "INV: " + inv;
       document.getElementById('receiptDate').innerText = "Date: " + date;
@@ -473,7 +485,6 @@
       document.getElementById('receiptTotalAmt').innerText = total.toLocaleString() + " Ks";
     }
 
-    // Order Tracking
     async function trackOrder() {
       const id = document.getElementById('track-id').value.trim();
       if(!id) return;
@@ -499,7 +510,6 @@
       btn.innerText = originalText;
     }
 
-    // Initialize Application
     updateCart();
     loadData();
   </script>
