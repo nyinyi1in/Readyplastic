@@ -19,16 +19,30 @@
     /* Remove Number Input Arrows for Keyboard typing */
     .no-spinners::-webkit-outer-spin-button, .no-spinners::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     .no-spinners { -moz-appearance: textfield; }
+
+    /* Thermal Printer Voucher Style (80mm width roughly equals 300px) */
+    .receipt-wrapper { display: none; position: fixed; top: 0; left: 0; width: 300px; z-index: 99999; background: white; padding: 10px; box-sizing: border-box; }
+    .receipt-card { width: 100%; font-family: sans-serif; color: #000; }
+    .receipt-header { text-align: center; margin-bottom: 10px; border-bottom: 1px dashed #000; padding-bottom: 10px; }
+    .receipt-logo { width: 70px; height: auto; margin: 0 auto 5px auto; border-radius: 4px; display: block; }
+    .receipt-header h2 { margin: 0 0 5px 0; font-size: 16px; font-weight: bold; color: #1a5e20;}
+    .receipt-header .address-text { margin: 4px 0; font-size: 11px; line-height: 1.4; }
+    .receipt-header .info-text { margin: 2px 0; font-size: 11px; }
+    
+    .receipt-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 11px; }
+    .receipt-table th, .receipt-table td { border-bottom: 1px dashed #ccc; padding: 6px 0; text-align: left; vertical-align: top; }
+    .receipt-table th.right, .receipt-table td.right { text-align: right; }
+    
+    .receipt-total { display: flex; justify-content: space-between; font-size: 14px; font-weight: bold; border-top: 1px dashed #000; padding-top: 8px; margin-bottom: 15px; }
   </style>
 </head>
-<body class="bg-gray-50 text-gray-800 font-sans">
+<body class="bg-gray-50 text-gray-800 font-sans relative">
 
   <!-- Navbar -->
   <nav class="bg-white shadow-md sticky top-0 z-40">
     <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
       <div class="font-black text-primary text-xl flex items-center gap-4">
         <span>READY <span class="text-xs font-bold text-gray-500 block">PACKAGING</span></span>
-        <!-- Navigation Links -->
         <button onclick="switchTab('shop')" class="text-sm px-3 py-1 bg-gray-100 rounded hover:bg-gray-200 font-bold">Shop</button>
         <button onclick="switchTab('track')" class="text-sm px-3 py-1 bg-gray-100 rounded hover:bg-gray-200 font-bold">Track Order</button>
       </div>
@@ -77,7 +91,6 @@
           <input type="tel" id="cus-phone" required placeholder="ဖုန်းနံပါတ်" class="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-primary outline-none">
           <textarea id="cus-address" required placeholder="လိပ်စာအပြည့်အစုံ" rows="2" class="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-primary outline-none"></textarea>
           
-          <!-- Payment Selection -->
           <div class="flex gap-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
             <label class="flex-1 flex items-center justify-center gap-2 cursor-pointer bg-white p-2 border rounded-md hover:bg-gray-50 font-bold text-sm">
               <input type="radio" name="payment" value="Prepaid" required checked class="accent-primary w-4 h-4"> ငွေကြိုရှင်း
@@ -113,7 +126,7 @@
             <p class="font-bold text-gray-800">09791685202</p>
           </div>
           <button onclick="copyText('09791685202', this)" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-md text-sm font-bold transition flex items-center gap-1">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg> Copy
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg> Copy
           </button>
         </div>
       </div>
@@ -158,9 +171,32 @@
     </div>
   </div>
 
+  <!-- Thermal Receipt Area (Fixed Width 300px for 80mm Printer) -->
+  <div id="receiptWrapper" class="receipt-wrapper">
+    <div id="printContent" class="receipt-card">
+      <div class="receipt-header">
+        <img src="https://drive.google.com/uc?export=view&id=1ZAR16YrOqmmsAzmX_f4v6jxaWSJVburY" alt="Ready Packaging Logo" class="receipt-logo" crossorigin="anonymous" onerror="this.style.display='none'">
+        <h2>Ready Packaging</h2>
+        <p class="address-text">ဆိုင်အမှတ်-ည(၄/၅)၊ ညဈေး(စျေးရုံအတွင်း)၊<br>စျေးကြီးလမ်း၊ ကြည့်မြင်တိုင်၊ ရန်ကုန်မြို့။</p>
+        <p class="address-text"><strong>Viber:</strong> 09425024355 | <strong>Kpay:</strong> 09791685202</p>
+        <p class="info-text" id="r-date" style="margin-top: 8px;">Date: --</p>
+        <p class="info-text" id="r-inv">INV: --</p>
+      </div>
+      <table class="receipt-table">
+        <thead><tr><th>Item</th><th class="right">Amount</th></tr></thead>
+        <tbody id="r-items"></tbody>
+      </table>
+      <div class="receipt-total">
+        <span>Total:</span>
+        <span id="r-total">0 Ks</span>
+      </div>
+      <p style="text-align: center; font-size: 11px;">ဝယ်ယူအားပေးမှုကို ကျေးဇူးတင်ပါသည်!</p>
+    </div>
+  </div>
+
   <script>
     // =======================================================
-    // User API URL
+    // API URL 
     const API_URL = "https://script.google.com/macros/s/AKfycbx4MAAHi-qhEWXTHRxHH5yw3LuszN7OwfeF1JELDf3WPDzWZc7xPELaCZjPZVNSeBuTmg/exec"; 
     // =======================================================
 
@@ -172,7 +208,7 @@
       document.getElementById('track-section').style.display = tab === 'track' ? 'block' : 'none';
     }
 
-    // KPay App Route OS Detection
+    // KPay App Route
     function openKPay() {
       var userAgent = navigator.userAgent || navigator.vendor || window.opera;
       if (/android/i.test(userAgent)) {
@@ -184,7 +220,7 @@
       }
     }
 
-    // Load Products from Sheet
+    // Load Products
     async function loadData() {
       try {
         const res = await fetch(API_URL);
@@ -235,8 +271,6 @@
             <div class="font-bold text-sm h-10 line-clamp-2 text-gray-800 leading-tight">${p.name}</div>
             <div class="mt-auto pt-3 flex justify-between items-center">
               <span class="text-primary font-black text-sm">${p.price.toLocaleString()} Ks</span>
-              
-              <!-- Original Simple Add Button -->
               <button onclick="addToCart('${p.code}')" ${isOutOfStock ? 'disabled' : ''} class="${isOutOfStock ? 'bg-gray-200 text-gray-400' : 'bg-secondary text-green-900 hover:bg-yellow-400'} px-3 py-1.5 rounded-lg text-xs font-bold transition shadow-sm min-w-[70px]">
                 Add
               </button>
@@ -284,9 +318,7 @@
               </div>
               <div class="flex items-center bg-gray-50 rounded-md border">
                 <button type="button" onclick="cart[${index}].qty--; if(cart[${index}].qty<=0) cart.splice(${index},1); updateCart();" class="w-7 h-7 flex items-center justify-center text-gray-600 hover:bg-gray-200 rounded-l-md font-bold">-</button>
-                
                 <input type="number" min="1" value="${item.qty}" onchange="updateItemQty(${index}, this.value)" class="w-10 h-7 text-center text-sm font-bold text-gray-800 bg-transparent border-none outline-none focus:ring-0 p-0 m-0 no-spinners">
-                
                 <button type="button" onclick="cart[${index}].qty++; updateCart();" class="w-7 h-7 flex items-center justify-center text-gray-600 hover:bg-gray-200 rounded-r-md font-bold">+</button>
               </div>
             </div>
@@ -343,8 +375,8 @@
         const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
         const data = await res.json();
         
-        toggleCart(); // Close Cart
-        e.target.reset(); // Reset form
+        toggleCart(); 
+        e.target.reset(); 
         
         if (data.paymentType === 'Prepaid') {
           prepareReceiptData(data.orderId, data.dateStr, cart, totalAmt);
@@ -363,56 +395,51 @@
       btn.disabled = false;
     }
 
-    // 100% BLANK PDF FIX (String generation method)
+    // Receipt Preparation & Thermal PDF Download Fix
     function prepareReceiptData(inv, date, items, total) {
+      document.getElementById('r-inv').innerText = "INV: " + inv;
+      document.getElementById('r-date').innerText = "Date: " + date;
+      document.getElementById('r-items').innerHTML = items.map(i => `<tr><td>${i.name}<br><small>${i.price.toLocaleString()} x ${i.qty}</small></td><td class="right">${(i.price * i.qty).toLocaleString()}</td></tr>`).join('');
+      document.getElementById('r-total').innerText = total.toLocaleString() + " Ks";
+      
       const dlBtn = document.getElementById('btn-download-voucher');
       dlBtn.onclick = function() {
         const originalText = dlBtn.innerHTML;
         dlBtn.innerHTML = "⏳ ဆွဲယူနေပါသည်...";
         dlBtn.disabled = true;
         
-        // ဘောင်ချာ ဒီဇိုင်းကို HTML လိုင်းများအဖြစ် တိုက်ရိုက် ရေးသားဖန်တီးခြင်း
-        let itemsHtml = items.map(i => `<tr><td style="border-bottom: 1px dashed #ccc; padding: 5px 0;">${i.name}<br><small>${i.price.toLocaleString()} x ${i.qty}</small></td><td style="border-bottom: 1px dashed #ccc; padding: 5px 0; text-align: right;">${(i.price * i.qty).toLocaleString()}</td></tr>`).join('');
+        const wrapper = document.getElementById('receiptWrapper');
+        wrapper.style.display = 'block'; // ဖုန်းမျက်နှာပြင်တွင် သေချာပေါ်လာစေရန် (Top Left)
         
-        let receiptHTML = `
-          <div style="background: white; width: 340px; padding: 25px 20px 20px 20px; font-family: monospace; color: #000; box-sizing: border-box;">
-            <div style="text-align: center; margin-bottom: 15px; border-bottom: 1px dashed #000; padding-bottom: 10px;">
-              <img src="https://drive.google.com/uc?export=view&id=1ZAR16YrOqmmsAzmX_f4v6jxaWSJVburY" crossorigin="anonymous" style="width: 70px; height: auto; margin: 0 auto 5px auto; border-radius: 4px; display: block;" onerror="this.style.display='none'">
-              <h2 style="margin: 0 0 5px 0; font-size: 18px; font-family: sans-serif; color: #1a5e20;">Ready Packaging</h2>
-              <p style="margin: 4px 0; font-size: 11px; line-height: 1.4; font-family: sans-serif;">ဆိုင်အမှတ်-ည(၄/၅)၊ ညဈေး(စျေးရုံအတွင်း)၊<br>စျေးကြီးလမ်း၊ ကြည့်မြင်တိုင်၊ ရန်ကုန်မြို့။</p>
-              <p style="margin: 4px 0; font-size: 11px; font-family: sans-serif;"><strong>Viber:</strong> 09425024355 | <strong>Kpay:</strong> 09791685202</p>
-              <p style="margin: 10px 0 2px 0; font-size: 12px;">Date: ${date}</p>
-              <p style="margin: 2px 0; font-size: 12px;">INV: ${inv}</p>
-            </div>
-            <table style="width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 12px;">
-              <thead><tr><th style="border-bottom: 1px dashed #ccc; padding: 5px 0; text-align: left;">Item</th><th style="border-bottom: 1px dashed #ccc; padding: 5px 0; text-align: right;">Amount</th></tr></thead>
-              <tbody>${itemsHtml}</tbody>
-            </table>
-            <div style="display: flex; justify-content: space-between; font-size: 16px; font-weight: bold; border-top: 1px dashed #000; padding-top: 10px; margin-bottom: 20px;">
-              <span>Total:</span>
-              <span>${total.toLocaleString()} Ks</span>
-            </div>
-            <p style="text-align: center; font-size: 12px;">ဝယ်ယူအားပေးမှုကို ကျေးဇူးတင်ပါသည်!</p>
-          </div>
-        `;
-
+        // 80mm အတိုင်းအတာဖြင့် အဖြူရောင်ဗလာမကျန်စေရန် အမြင့် (Height) ကို တွက်ချက်ခြင်း
+        const contentHeight = wrapper.offsetHeight; 
+        const heightInMM = Math.max(100, (contentHeight * 25.4) / 96); 
+        
         const opt = {
-          margin: 0.1,
+          margin: 2,
           filename: inv + '.pdf',
           image: { type: 'jpeg', quality: 1 },
-          html2canvas: { scale: 2, useCORS: true, logging: false },
-          jsPDF: { unit: 'in', format: [3.15, 6], orientation: 'portrait' }
+          html2canvas: { 
+            scale: 2, 
+            useCORS: true,
+            scrollY: 0, // အောက်ရောက်နေလျှင် အပေါ်ဆုံးမှ ပြန်စဖြတ်ရန် (ဖြတ်ပိုင်းပြတ်ခြင်းကို ကာကွယ်ရန်)
+            windowWidth: 300 // Thermal size 300px width
+          },
+          jsPDF: { unit: 'mm', format: [80, heightInMM + 10], orientation: 'portrait' }
         };
         
-        // ဖွက်ထားသော မျက်နှာပြင်မှ ယူမည့်အစား HTML Code ကို တိုက်ရိုက် PDF ပြောင်းမည်
-        html2pdf().set(opt).from(receiptHTML).save().then(() => {
-          dlBtn.innerHTML = originalText;
-          dlBtn.disabled = false;
-        }).catch(err => {
-          dlBtn.innerHTML = originalText;
-          dlBtn.disabled = false;
-          alert("PDF ဆွဲယူရာတွင် အခက်အခဲရှိပါသည်။");
-        });
+        // ပုံများပေါ်လာစေရန် အနည်းငယ်စောင့်ပြီးမှ Screenshot ရိုက်ယူသည်
+        setTimeout(() => {
+            html2pdf().set(opt).from(wrapper).save().then(() => {
+              wrapper.style.display = 'none'; // ဒေါင်းလုဒ်အပြီးတွင် ချက်ချင်းပြန်ဖျောက်သည်
+              dlBtn.innerHTML = originalText;
+              dlBtn.disabled = false;
+            }).catch(err => {
+              wrapper.style.display = 'none';
+              dlBtn.innerHTML = originalText;
+              dlBtn.disabled = false;
+            });
+        }, 300);
       };
     }
 
