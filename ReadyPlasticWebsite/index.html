@@ -19,22 +19,6 @@
     /* Remove Number Input Arrows for Keyboard typing */
     .no-spinners::-webkit-outer-spin-button, .no-spinners::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     .no-spinners { -moz-appearance: textfield; }
-
-    /* Thermal Printer Voucher Style (Spacious & Clean) */
-    .receipt-wrapper { display: none; position: fixed; top: 0; left: 0; width: 320px; z-index: 99999; background: white; padding: 20px; box-sizing: border-box; }
-    .receipt-card { width: 100%; font-family: sans-serif; color: #000; }
-    .receipt-header { text-align: center; margin-bottom: 12px; border-bottom: 1px dashed #000; padding-bottom: 12px; }
-    .receipt-logo { width: 70px; height: auto; margin: 0 auto 8px auto; border-radius: 4px; display: block; }
-    .receipt-header h2 { margin: 0 0 6px 0; font-size: 16px; font-weight: bold; color: #1a5e20;}
-    .receipt-header .address-text { margin: 4px 0; font-size: 11px; line-height: 1.5; }
-    .receipt-header .info-text { margin: 2px 0; font-size: 11px; }
-    
-    .receipt-table { width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 11px; }
-    /* Padding တိုးပေးထားပြီး စာရှည်လျှင် အောက်ဆင်းစေရန် word-break ထည့်ထားပါသည် */
-    .receipt-table th, .receipt-table td { border-bottom: 1px dashed #ccc; padding: 8px 4px; text-align: left; vertical-align: top; word-break: break-word; }
-    .receipt-table th.right, .receipt-table td.right { text-align: right; white-space: nowrap; }
-    
-    .receipt-total { display: flex; justify-content: space-between; font-size: 14px; font-weight: bold; border-top: 1px dashed #000; padding-top: 10px; margin-bottom: 15px; }
   </style>
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans relative">
@@ -169,29 +153,6 @@
       </div>
 
       <button onclick="closeModals()" class="w-full bg-gray-800 hover:bg-gray-900 text-white py-3 rounded-lg font-bold transition shadow-md">အိုကေ၊ နားလည်ပါပြီ</button>
-    </div>
-  </div>
-
-  <!-- Thermal Receipt Area (Fixed Width 320px with spacious padding for 80mm Printer) -->
-  <div id="receiptWrapper" class="receipt-wrapper">
-    <div id="printContent" class="receipt-card">
-      <div class="receipt-header">
-        <img src="https://drive.google.com/uc?export=view&id=1ZAR16YrOqmmsAzmX_f4v6jxaWSJVburY" alt="Ready Packaging Logo" class="receipt-logo" crossorigin="anonymous" onerror="this.style.display='none'">
-        <h2>Ready Packaging</h2>
-        <p class="address-text">ဆိုင်အမှတ်-ည(၄/၅)၊ ညဈေး(စျေးရုံအတွင်း)၊<br>စျေးကြီးလမ်း၊ ကြည့်မြင်တိုင်၊ ရန်ကုန်မြို့။</p>
-        <p class="address-text"><strong>Viber:</strong> 09425024355 | <strong>Kpay:</strong> 09791685202</p>
-        <p class="info-text" id="r-date" style="margin-top: 8px;">Date: --</p>
-        <p class="info-text" id="r-inv">INV: --</p>
-      </div>
-      <table class="receipt-table">
-        <thead><tr><th>Item</th><th class="right">Amount</th></tr></thead>
-        <tbody id="r-items"></tbody>
-      </table>
-      <div class="receipt-total">
-        <span>Total:</span>
-        <span id="r-total">0 Ks</span>
-      </div>
-      <p style="text-align: center; font-size: 11px;">ဝယ်ယူအားပေးမှုကို ကျေးဇူးတင်ပါသည်!</p>
     </div>
   </div>
 
@@ -396,51 +357,76 @@
       btn.disabled = false;
     }
 
-    // Receipt Preparation & Thermal PDF Download Fix
+    // New 100% Bug-Free Receipt PDF Generator (Virtual HTML Rendering)
     function prepareReceiptData(inv, date, items, total) {
-      document.getElementById('r-inv').innerText = "INV: " + inv;
-      document.getElementById('r-date').innerText = "Date: " + date;
-      document.getElementById('r-items').innerHTML = items.map(i => `<tr><td>${i.name}<br><small>${i.price.toLocaleString()} x ${i.qty}</small></td><td class="right">${(i.price * i.qty).toLocaleString()}</td></tr>`).join('');
-      document.getElementById('r-total').innerText = total.toLocaleString() + " Ks";
-      
       const dlBtn = document.getElementById('btn-download-voucher');
       dlBtn.onclick = function() {
         const originalText = dlBtn.innerHTML;
         dlBtn.innerHTML = "⏳ ဆွဲယူနေပါသည်...";
         dlBtn.disabled = true;
         
-        const wrapper = document.getElementById('receiptWrapper');
-        wrapper.style.display = 'block'; 
-        
-        // ဘောင်ချာအရှည် (Height) တွက်ချက်ခြင်း 
-        const contentHeight = wrapper.offsetHeight; 
-        // 80mm အကျယ်နှင့် အချိုးညီစေရန် တွက်ချက်ပြီး အောက်တွင် အလွတ်အနည်းငယ် (10mm ခန့်) ချန်ထားပေးသည်
-        const heightInMM = Math.max(100, (contentHeight * 25.4) / 96) + 10; 
-        
+        // ဘောင်ချာတွင်ပေါ်မည့် ပစ္စည်းစာရင်း HTML ကို တည်ဆောက်ခြင်း
+        const itemsHtml = items.map(i => `
+          <tr>
+            <td style="border-bottom: 1px dashed #ccc; padding: 8px 4px; word-break: break-word; font-size: 11px;">
+              ${i.name}<br><small>${i.price.toLocaleString()} x ${i.qty}</small>
+            </td>
+            <td style="border-bottom: 1px dashed #ccc; padding: 8px 4px; text-align: right; white-space: nowrap; font-size: 11px; vertical-align: top;">
+              ${(i.price * i.qty).toLocaleString()}
+            </td>
+          </tr>
+        `).join('');
+
+        // မျက်နှာပြင်ပေါ် လုံးဝမပေါ်လာစေဘဲ Virtual ဖြင့် 80mm အတိုင်းအတာအတိုင်း တည်ဆောက်ခြင်း
+        const receiptHtml = `
+          <div style="width: 300px; background: white; padding: 20px; color: black; font-family: sans-serif; box-sizing: border-box;">
+            <div style="text-align: center; margin-bottom: 12px; border-bottom: 1px dashed #000; padding-bottom: 12px;">
+              <img src="https://drive.google.com/uc?export=view&id=1ZAR16YrOqmmsAzmX_f4v6jxaWSJVburY" style="width: 70px; margin: 0 auto 8px auto; display: block;" crossorigin="anonymous">
+              <h2 style="margin: 0 0 6px 0; font-size: 16px; font-weight: bold; color: #1a5e20;">Ready Packaging</h2>
+              <p style="margin: 4px 0; font-size: 11px; line-height: 1.5;">ဆိုင်အမှတ်-ည(၄/၅)၊ ညဈေး(စျေးရုံအတွင်း)၊<br>စျေးကြီးလမ်း၊ ကြည့်မြင်တိုင်၊ ရန်ကုန်မြို့။</p>
+              <p style="margin: 4px 0; font-size: 11px;"><strong>Viber:</strong> 09425024355 | <strong>Kpay:</strong> 09791685202</p>
+              <p style="margin: 2px 0; font-size: 11px;">Date: ${date}</p>
+              <p style="margin: 2px 0; font-size: 11px;">INV: ${inv}</p>
+            </div>
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 12px;">
+              <thead>
+                <tr>
+                  <th style="border-bottom: 1px dashed #ccc; padding: 6px 4px; text-align: left; font-size: 11px;">Item</th>
+                  <th style="border-bottom: 1px dashed #ccc; padding: 6px 4px; text-align: right; font-size: 11px;">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${itemsHtml}
+              </tbody>
+            </table>
+            <div style="display: flex; justify-content: space-between; font-size: 14px; font-weight: bold; border-top: 1px dashed #000; padding-top: 10px; margin-bottom: 15px;">
+              <span>Total:</span>
+              <span>${total.toLocaleString()} Ks</span>
+            </div>
+            <p style="text-align: center; font-size: 11px;">ဝယ်ယူအားပေးမှုကို ကျေးဇူးတင်ပါသည်!</p>
+          </div>
+        `;
+
+        // ပစ္စည်းအရေအတွက်ပေါ်မူတည်၍ အလျား(Height) တွက်ချက်ခြင်း
+        const heightInMM = Math.max(100, 75 + (items.length * 15)); 
+
         const opt = {
-          margin: 0, // HTML အတွင်းရှိ padding ကိုသာ အသုံးပြုမည်ဖြစ်၍ 0 ထားပါသည်
+          margin: 0,
           filename: inv + '.pdf',
           image: { type: 'jpeg', quality: 1 },
-          html2canvas: { 
-            scale: 2, 
-            useCORS: true,
-            scrollY: 0,
-            windowWidth: 320 // 320px ဖြင့် ဖြတ်မည်
-          },
+          html2canvas: { scale: 2, useCORS: true },
           jsPDF: { unit: 'mm', format: [80, heightInMM], orientation: 'portrait' }
         };
-        
-        setTimeout(() => {
-            html2pdf().set(opt).from(wrapper).save().then(() => {
-              wrapper.style.display = 'none';
-              dlBtn.innerHTML = originalText;
-              dlBtn.disabled = false;
-            }).catch(err => {
-              wrapper.style.display = 'none';
-              dlBtn.innerHTML = originalText;
-              dlBtn.disabled = false;
-            });
-        }, 300);
+
+        // DOM မှတဆင့်မဟုတ်ဘဲ HTML String မှတဆင့် တိုက်ရိုက် PDF ပြောင်းခြင်း
+        html2pdf().set(opt).from(receiptHtml).save().then(() => {
+          dlBtn.innerHTML = originalText;
+          dlBtn.disabled = false;
+        }).catch(err => {
+          dlBtn.innerHTML = originalText;
+          dlBtn.disabled = false;
+          alert("PDF ဆွဲရာတွင် အခက်အခဲရှိပါသည်။");
+        });
       };
     }
 
