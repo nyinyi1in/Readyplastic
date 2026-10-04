@@ -171,11 +171,12 @@
   </div>
 
   <!-- Blank PDF Fix: Temporary On-Screen Receipt Area (Hidden via z-index behind Modal) -->
-  <div id="receiptWrapper" style="display: none; position: absolute; top: 0; left: 0; z-index: 50; background: white;">
+  <!-- အဟောင်းနေရာတွင် အောက်ပါကုဒ်ဖြင့် အစားထိုးပါ -->
+<div id="receiptWrapper" style="display: none; position: fixed; top: 0; left: 0; width: 340px; z-index: 50; background: white;">
     <div id="printContent" class="receipt-card">
       <div class="receipt-header">
         <img src="https://drive.google.com/uc?export=view&id=1ZAR16YrOqmmsAzmX_f4v6jxaWSJVburY" alt="Ready Packaging Logo" class="receipt-logo" crossorigin="anonymous" onerror="this.style.display='none'">
-        <h2>Ready Packaging</h2>
+        <h2>Ready Plastic&Packaging</h2>
         <p class="address-text">ဆိုင်အမှတ်-ည(၄/၅)၊ ညဈေး(စျေးရုံအတွင်း)၊<br>စျေးကြီးလမ်း၊ ကြည့်မြင်တိုင်၊ ရန်ကုန်မြို့။</p>
         <p class="address-text"><strong>Viber:</strong> 09425024355 | <strong>Kpay:</strong> 09791685202</p>
         <p class="info-text" id="r-date" style="margin-top: 8px;">Date: --</p>
@@ -416,13 +417,14 @@
         wrapper.style.display = 'block'; 
         
         const element = document.getElementById('printContent');
-        const opt = {
-          margin: 0.1,
-          filename: inv + '.pdf',
-          image: { type: 'jpeg', quality: 1 },
-          html2canvas: { scale: 2, useCORS: true },
-          jsPDF: { unit: 'in', format: [3.15, 6], orientation: 'portrait' }
-        };
+        // JS အောက်နားရှိ prepareReceiptData function အထဲတွင် ပြင်ရန်
+const opt = {
+  margin: 0.1,
+  filename: inv + '.pdf',
+  image: { type: 'jpeg', quality: 1 },
+  html2canvas: { scale: 2, useCORS: true, scrollY: 0 }, // scrollY: 0 ကို ထပ်ထည့်ထားပါသည်
+  jsPDF: { unit: 'in', format: [3.15, 6], orientation: 'portrait' }
+};
         
         html2pdf().set(opt).from(element).save().then(() => {
           wrapper.style.display = 'none'; // ဒေါင်းလုဒ်အပြီးတွင် ချက်ချင်းပြန်ဖျောက်မည်
